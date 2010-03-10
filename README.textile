@@ -1,3 +1,13 @@
 h1. APN on Rails (Apple Push Notifications on Rails)
 
-I have turned over the reigns of APN on Rails to the good people @ PRX. You can find the OFFICIAL for at: http://github.com/PRX/apn_on_rails
+I have turned over the reigns of APN on Rails to the good people @ PRX (Public Radio Exchange). 
+
+You can find the OFFICIAL for at: 
+
+http://github.com/PRX/apn_on_rails
+
+h3. Thank You
+
+I would quickly like to say thank you to everyone who has supported this project, but due to other priorities in my life, I just don't have time to keep up with the demands of this plugin. I know the great folks @ PRX will do a great job maintaining APN on Rails.
+
+PRX: http://www.prx.org/
