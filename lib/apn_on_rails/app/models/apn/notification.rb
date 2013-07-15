@@ -20,6 +20,7 @@ class APN::Notification < APN::Base
   serialize :custom_properties
   
   belongs_to :device, :class_name => 'APN::Device'
+  has_one    :app,    :class_name => 'APN::App', :through => :device
   
   # Stores the text alert message you want to send to the device.
   # 
@@ -46,7 +47,7 @@ class APN::Notification < APN::Base
   #   apn.badge = 0
   #   apn.sound = true
   #   apn.custom_properties = {"typ" => 1}
-  #   apn.apple_hast # => {"aps" => {"badge" => 0}}
+  #   apn.apple_hash # => {"aps" => {"badge" => 0, "sound" => "1.aiff"}, "typ" => "1"}
   def apple_hash
     result = {}
     result['aps'] = {}
@@ -84,34 +85,9 @@ class APN::Notification < APN::Base
     message
   end
   
-  class << self
-    
-    # Opens a connection to the Apple APN server and attempts to batch deliver
-    # an Array of notifications.
-    # 
-    # This method expects an Array of APN::Notifications. If no parameter is passed
-    # in then it will use the following:
-    #   APN::Notification.all(:conditions => {:sent_at => nil})
-    # 
-    # As each APN::Notification is sent the <tt>sent_at</tt> column will be timestamped,
-    # so as to not be sent again.
-    # 
-    # This can be run from the following Rake task:
-    #   $ rake apn:notifications:deliver
-    def send_notifications(notifications = APN::Notification.all(:conditions => {:sent_at => nil}))
-      unless notifications.nil? || notifications.empty?
-
-        APN::Connection.open_for_delivery do |conn, sock|
-          notifications.each do |noty|
-            conn.write(noty.message_for_sending)
-            noty.sent_at = Time.now
-            noty.save
-          end
-        end
-
-      end
-    end
-    
-  end # class << self
+  def self.send_notifications
+    ActiveSupport::Deprecation.warn("The method APN::Notification.send_notifications is deprecated.  Use APN::App.send_notifications instead.")
+    APN::App.send_notifications
+  end
   
 end # APN::Notification

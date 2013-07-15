@@ -5,7 +5,8 @@ describe APN::Device do
   describe 'token' do
     
     it 'should be unique' do
-      device = DeviceFactory.new(:token => APN::Device.first.token)
+      t = APN::Device.first.token
+      device = DeviceFactory.new(:token => t)
       device.should_not be_valid
       device.errors['token'].should include('has already been taken')
       
@@ -40,19 +41,19 @@ describe APN::Device do
     
   end
   
-  describe 'before_save' do
+  describe 'before_create' do
     
-    it 'should set the last_registered_at date to Time.now if nil' do
+    it 'should set the last_registered_at date to Time.now' do
       time = Time.now
       Time.stub(:now).and_return(time)
       device = DeviceFactory.create
       device.last_registered_at.should_not be_nil
       device.last_registered_at.to_s.should == time.to_s
       
-      ago = 1.week.ago
-      device = DeviceFactory.create(:last_registered_at => ago)
-      device.last_registered_at.should_not be_nil
-      device.last_registered_at.to_s.should == ago.to_s
+      # ago = 1.week.ago
+      # device = DeviceFactory.create(:last_registered_at => ago)
+      # device.last_registered_at.should_not be_nil
+      # device.last_registered_at.to_s.should == ago.to_s
     end
     
   end

@@ -16,6 +16,8 @@ describe APN::Notification do
     
     it 'should return a hash of the appropriate params for Apple' do
       noty = APN::Notification.first
+      noty.apple_hash.should == {"aps" => {"badge" => 5, "sound" => "my_sound.aiff", "alert" => "Hello!"},"typ" => "1"}
+      noty.custom_properties = nil
       noty.apple_hash.should == {"aps" => {"badge" => 5, "sound" => "my_sound.aiff", "alert" => "Hello!"}}
       noty.badge = nil
       noty.apple_hash.should == {"aps" => {"sound" => "my_sound.aiff", "alert" => "Hello!"}}
@@ -33,7 +35,7 @@ describe APN::Notification do
     
     it 'should return the necessary JSON for Apple' do
       noty = APN::Notification.first
-      noty.to_apple_json.should == %{{"aps":{"badge":5,"sound":"my_sound.aiff","alert":"Hello!"}}}
+      noty.to_apple_json.should == %{{"typ":"1","aps":{"badge":5,"sound":"my_sound.aiff","alert":"Hello!"}}}
     end
     
   end
@@ -42,6 +44,7 @@ describe APN::Notification do
     
     it 'should create a binary message to be sent to Apple' do
       noty = APN::Notification.first
+      noty.custom_properties = nil
       noty.device = DeviceFactory.new(:token => '5gxadhy6 6zmtxfl6 5zpbcxmw ez3w7ksf qscpr55t trknkzap 7yyt45sc g6jrw7qz')
       noty.message_for_sending.should == fixture_value('message_for_sending.bin')
     end
@@ -56,26 +59,13 @@ describe APN::Notification do
     
   end
   
-  describe 'send_notifications' do
+  describe 'send_notifications' do 
     
-    it 'should send the notifications in an Array' do
-      
-      notifications = [NotificationFactory.create, NotificationFactory.create]
-      notifications.each_with_index do |notify, i|
-        notify.stub(:message_for_sending).and_return("message-#{i}")
-        notify.should_receive(:sent_at=).with(instance_of(Time))
-        notify.should_receive(:save)
-      end
-      
-      ssl_mock = mock('ssl_mock')
-      ssl_mock.should_receive(:write).with('message-0')
-      ssl_mock.should_receive(:write).with('message-1')
-      APN::Connection.should_receive(:open_for_delivery).and_yield(ssl_mock, nil)
-      
-      APN::Notification.send_notifications(notifications)
-      
+    it 'should warn the user the method is deprecated and call the corresponding method on APN::App' do
+      ActiveSupport::Deprecation.should_receive(:warn)
+      APN::App.should_receive(:send_notifications)
+      APN::Notification.send_notifications
     end
-    
   end
   
 end
