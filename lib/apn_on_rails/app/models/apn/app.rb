@@ -23,6 +23,7 @@ class APN::App < APN::Base
       raise APN::Errors::MissingCertificateError.new
       return
     end
+    
     APN::App.send_notifications_for_cert(self.cert, self.id)
   end
 
@@ -38,26 +39,23 @@ class APN::App < APN::Base
   end
 
   def self.send_notifications_for_cert(the_cert, app_id)
-    # unless self.unsent_notifications.nil? || self.unsent_notifications.empty?
-      if (app_id == nil)
-        conditions = "app_id is null"
-      else
-        conditions = ["app_id = ?", app_id]
-      end
-      begin
-        APN::Connection.open_for_delivery({:cert => the_cert}) do |conn, sock|
-          APN::Device.find_each(:conditions => conditions) do |dev|
-            dev.unsent_notifications.each do |noty|
-              conn.write(noty.message_for_sending)
-              noty.sent_at = Time.now
-              noty.save
-            end
-          end
+    if (app_id == nil)
+      app_conditions = "apn_devices.app_id is null"
+    else
+      app_conditions = ["apn_devices.app_id = ?", app_id]
+    end
+    
+    sent_ids = []
+    begin
+      APN::Connection.open_for_delivery({:cert => the_cert}) do |conn, sock|
+        APN::Notification.where(:sent_at => nil).joins(:device).where(app_conditions).find_each(batch_size: 4000) do |notification|
+          sent_ids << notification.id
+          conn.write(notification.message_for_sending)
         end
-      rescue Exception => e
-        log_connection_exception(e)
       end
-    # end
+    ensure
+      APN::Notification.update_all(['sent_at = ?', Time.now.utc], ['id in (?)', sent_ids]) if sent_ids.any?
+    end
   end
 
   def send_group_notifications

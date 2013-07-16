@@ -84,6 +84,7 @@ class APN::Notification < APN::Base
     raise APN::Errors::ExceededMessageSizeError.new(message) if message.size.to_i > 256
     message
   end
+  
   def encode(string)
     string.respond_to?(:force_encoding) ? string.force_encoding('BINARY') : string
   end
